@@ -14,6 +14,7 @@ from .views import (
     PaymentViewSet,
     ReservationViewSet,
     SettingViewSet,
+    LogoutView,
 )
 
 
@@ -80,6 +81,8 @@ urlpatterns = [
         name="login",
     ),
 
+    path("auth/logout/", LogoutView.as_view(), name="logout"),
+    
     path(
         "auth/refresh/",
         RefreshTokenView.as_view(),

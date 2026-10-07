@@ -1,6 +1,8 @@
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 from .models import (
     Pacient,
@@ -86,84 +88,59 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
 
+
+
 class UserCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer para crear usuarios.
-
-    La contraseña se recibe normalmente pero se almacena
-    utilizando el sistema de hashing de Django.
-    """
-
-    password = serializers.CharField(
-        write_only=True,
-        min_length=6,
-    )
+    password = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
         model = User
-        fields = [
-            "id",
-            "username",
-            "name",
-            "lastname",
-            "email",
-            "password",
-            "is_active",
-        ]
-        read_only_fields = [
-            "id",
-        ]
+        fields = ["id", "username", "name", "lastname", "email",
+                  "password", "is_active", "is_staff"]
+        read_only_fields = ["id"]
+
+    def validate(self, attrs):
+        user = User(**{k: v for k, v in attrs.items() if k != "password"})
+        try:
+            validate_password(attrs["password"], user)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError({"password": list(e.messages)})
+        return attrs
 
     def create(self, validated_data):
         password = validated_data.pop("password")
-
         user = User(**validated_data)
         user.set_password(password)
         user.save()
-
         return user
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer para actualizar usuarios.
-    Permite cambiar la contraseña correctamente.
-    """
-
-    password = serializers.CharField(
-        write_only=True,
-        required=False,
-        min_length=6,
-    )
+    password = serializers.CharField(write_only=True, required=False, min_length=8)
 
     class Meta:
         model = User
-        fields = [
-            "id",
-            "username",
-            "name",
-            "lastname",
-            "email",
-            "password",
-            "is_active",
-        ]
-        read_only_fields = [
-            "id",
-        ]
+        fields = ["id", "username", "name", "lastname", "email",
+                  "password", "is_active", "is_staff"]
+        read_only_fields = ["id"]
+
+    def validate(self, attrs):
+        pw = attrs.get("password")
+        if pw:
+            try:
+                validate_password(pw, self.instance)
+            except DjangoValidationError as e:
+                raise serializers.ValidationError({"password": list(e.messages)})
+        return attrs
 
     def update(self, instance, validated_data):
         password = validated_data.pop("password", None)
-
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-
         if password:
             instance.set_password(password)
-
         instance.save()
-
         return instance
-
 
 # ============================================================
 # PACIENT
@@ -340,6 +317,7 @@ class ReservationSerializer(serializers.ModelSerializer):
             "date_at",
             "time_at",
             "created_at",
+            "user",
 
             "pacient",
             "pacient_name",

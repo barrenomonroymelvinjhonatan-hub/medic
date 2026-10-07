@@ -9,6 +9,10 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import (
     Pacient,
     Category,
@@ -43,6 +47,16 @@ User = get_user_model()
 # AUTH
 # ============================================================
 
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            RefreshToken(request.data["refresh"]).blacklist()
+        except Exception:
+            pass
+        return Response(status=205)
+    
 class LoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [AllowAny]

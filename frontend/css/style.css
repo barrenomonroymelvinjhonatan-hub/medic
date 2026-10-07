@@ -1,0 +1,44 @@
+:root { --brand: #0d6efd; --brand-dark: #0a3d91; }
+:root { --menu-bg: #111d3c; }
+
+.hero {
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+  color: #fff;
+  padding: 6rem 0;
+}
+
+.login-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+}
+
+/* Dashboard */
+.sidebar { width: 240px; min-height: 100vh; background: #12203a; }
+.sidebar .nav-link { color: #c7d2e5; border-radius: .5rem; }
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active { background: rgba(255,255,255,.12); color: #fff; }
+.stat-card { border: 0; border-left: 5px solid var(--brand); }
+
+
+    /* ===== Layout responsive (mobile first) ===== */
+    .app-sidebar { --bs-offcanvas-bg: #111d3c; --bs-offcanvas-color: #fff; --bs-offcanvas-width: 260px; }
+    .app-sidebar .nav-link { color: rgba(255,255,255,.75); border-radius: .5rem; padding: .7rem .9rem; }
+    .app-sidebar .nav-link:hover { color: #fff; background: rgba(255,255,255,.08); }
+    .app-sidebar .nav-link.active { color: #fff; background: rgba(255,255,255,.16); }
+    @media (min-width: 992px) {
+      .app-sidebar { background: #111d3c; width: 240px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; }
+    }
+    .app-main { min-width: 0; }
+
+    /* Tablas: en celular cada fila se convierte en una tarjeta */
+    @media (max-width: 767.98px) {
+      .tabla-cards thead { display: none; }
+      .tabla-cards tbody tr { display: block; padding: .5rem .25rem; border-bottom: 1px solid #dee2e6; }
+      .tabla-cards tbody td { display: flex; justify-content: space-between; gap: 1rem; border: 0; padding: .3rem .75rem; text-align: right; }
+      .tabla-cards tbody td::before { content: attr(data-label); font-weight: 600; color: #6c757d; text-align: left; }
+      .tabla-cards tbody td.acciones { justify-content: flex-end; }
+      .tabla-cards tbody td.acciones::before, .tabla-cards tbody td.vacio::before { content: none; }
+      .tabla-cards tbody td.vacio { display: block; text-align: center; }
+      .tabla-cards .btn-sm { padding: .5rem .9rem; }
+    }
+

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - Clínica</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <style>
+    /* ===== Layout responsive (mobile first) ===== */
+    /* >>> Cambia SOLO este color para personalizar el menú lateral <<< */
+    :root { --menu-bg: #111d3c; }
+
+    .app-sidebar { --bs-offcanvas-bg: var(--menu-bg); --bs-offcanvas-color: #fff; --bs-offcanvas-width: 260px; }
+    .app-sidebar .nav-link { color: rgba(255,255,255,.75); border-radius: .5rem; padding: .7rem .9rem; }
+    .app-sidebar .nav-link:hover { color: #fff; background: rgba(255,255,255,.08); }
+    .app-sidebar .nav-link.active { color: #fff; background: rgba(255,255,255,.16); }
+    @media (min-width: 992px) {
+      /* Bootstrap fuerza fondo transparente y tamaños automáticos en pantallas grandes: se anulan con !important */
+      .app-sidebar {
+        background-color: var(--menu-bg) !important;
+        flex: 0 0 240px !important;
+        width: 240px !important;
+        height: 100vh !important;
+        position: sticky; top: 0;
+        display: flex; flex-direction: column;
+      }
+      .app-sidebar .offcanvas-body { flex-grow: 1 !important; overflow-y: auto; }
+    }
+    .app-main { min-width: 0; }
+
+    /* Tablas: en celular cada fila se convierte en una tarjeta */
+    @media (max-width: 767.98px) {
+      .tabla-cards thead { display: none; }
+      .tabla-cards tbody tr { display: block; padding: .5rem .25rem; border-bottom: 1px solid #dee2e6; }
+      .tabla-cards tbody td { display: flex; justify-content: space-between; gap: 1rem; border: 0; padding: .3rem .75rem; text-align: right; }
+      .tabla-cards tbody td::before { content: attr(data-label); font-weight: 600; color: #6c757d; text-align: left; }
+      .tabla-cards tbody td.acciones { justify-content: flex-end; }
+      .tabla-cards tbody td.acciones::before, .tabla-cards tbody td.vacio::before { content: none; }
+      .tabla-cards tbody td.vacio { display: block; text-align: center; }
+      .tabla-cards .btn-sm { padding: .5rem .9rem; }
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <div class="d-flex">
+    <!-- SIDEBAR (menú lateral en pantallas grandes, menú deslizable en celular) -->
+    <aside class="offcanvas-lg offcanvas-start app-sidebar" tabindex="-1" id="sidebar" aria-labelledby="sidebarTitulo">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title text-white" id="sidebarTitulo"><i class="bi bi-heart-pulse-fill"></i> Clínica</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="Cerrar menú"></button>
+      </div>
+      <div class="offcanvas-body d-flex flex-column p-3">
+        <h5 class="text-white mb-4 d-none d-lg-block"><i class="bi bi-heart-pulse-fill"></i> Clínica</h5>
+        <ul class="nav nav-pills flex-column gap-1" id="menu">
+          <li><a class="nav-link active" href="#resumen" data-section="resumen"><i class="bi bi-speedometer2 me-2"></i>Resumen</a></li>
+          <li><a class="nav-link" href="#pacientes" data-section="pacientes"><i class="bi bi-people me-2"></i>Pacientes</a></li>
+          <li><a class="nav-link" href="#medicos" data-section="medicos"><i class="bi bi-person-badge me-2"></i>Médicos</a></li>
+          <li><a class="nav-link" href="#reservas" data-section="reservas"><i class="bi bi-calendar-check me-2"></i>Reservas</a></li>
+          <li><a class="nav-link" href="#categorias" data-section="categorias"><i class="bi bi-tags me-2"></i>Categorías</a></li>
+          <li><a class="nav-link" href="#usuarios" data-section="usuarios"><i class="bi bi-shield-lock me-2"></i>Usuarios</a></li>
+        </ul>
+        <a href="index.html" class="nav-link text-white-50 mt-auto"><i class="bi bi-house me-2"></i>Inicio</a>
+      </div>
+    </aside>
+
+    <!-- CONTENIDO -->
+    <main class="flex-grow-1 app-main">
+      <nav class="navbar bg-white shadow-sm px-3 px-md-4 flex-nowrap">
+        <div class="d-flex align-items-center">
+          <button class="btn btn-outline-secondary d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar" aria-label="Abrir menú">
+            <i class="bi bi-list"></i>
+          </button>
+          <span class="navbar-text fw-semibold" id="pageTitle">Resumen</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 gap-md-3">
+          <span id="userName" class="text-muted d-none d-sm-inline"></span>
+          <button class="btn btn-outline-danger btn-sm" onclick="logout()">
+            <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Salir</span>
+          </button>
+        </div>
+      </nav>
+
+      <div class="p-3 p-md-4">
+        <!-- RESUMEN -->
+        <section id="sec-resumen">
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-4"><div class="card stat-card shadow-sm"><div class="card-body">
+              <small class="text-muted">Pacientes</small><h2 id="cntPacientes">-</h2></div></div></div>
+            <div class="col-12 col-sm-4"><div class="card stat-card shadow-sm"><div class="card-body">
+              <small class="text-muted">Médicos</small><h2 id="cntMedicos">-</h2></div></div></div>
+            <div class="col-12 col-sm-4"><div class="card stat-card shadow-sm"><div class="card-body">
+              <small class="text-muted">Citas de hoy</small><h2 id="cntHoy">-</h2></div></div></div>
+          </div>
+          <div class="card shadow-sm">
+            <div class="card-header bg-white fw-semibold">Citas de hoy</div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0 tabla-cards">
+                <thead><tr><th>Hora</th><th>Paciente</th><th>Médico</th><th>Estado</th></tr></thead>
+                <tbody id="tbHoy"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECCIÓN GENÉRICA (Pacientes, Médicos, Reservas, Categorías, Usuarios) -->
+        <section id="sec-crud" class="d-none">
+          <h4 class="mb-3" id="crudTitulo"></h4>
+          <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex flex-wrap gap-2">
+              <input type="search" id="buscar" class="form-control" style="flex:1 1 200px" placeholder="Buscar...">
+              <button class="btn btn-primary" id="btnNuevo">
+                <i class="bi bi-plus-lg"></i> <span id="btnNuevoTxt"></span>
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0 tabla-cards">
+                <thead id="crudHead"></thead>
+                <tbody id="crudBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL FORMULARIO (crear / editar) con paso de confirmación -->
+  <div class="modal fade" id="modalForm" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
+      <form class="modal-content" id="formCrud">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalFormTitulo"></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3" id="formCampos"></div>
+          <div id="formConfirm" class="text-center py-4 d-none">
+            <i class="bi bi-question-circle fs-1 text-primary"></i>
+            <h5 class="mt-3" id="confirmTxt"></h5>
+            <p class="text-muted mb-0" id="confirmNombre"></p>
+          </div>
+          <div class="alert alert-danger mt-3 mb-0 d-none" id="formError" role="alert"></div>
+        </div>
+        <div class="modal-footer" id="footForm">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+        <div class="modal-footer d-none" id="footConfirm">
+          <button type="button" class="btn btn-secondary" id="btnVolver">Volver</button>
+          <button type="button" class="btn btn-success" id="btnConfirmarCrear">Sí, crear</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMAR ELIMINAR -->
+  <div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="delTitulo">Eliminar</h5></div>
+        <div class="modal-body">¿Seguro que quieres eliminar <strong id="delNombre"></strong>? Esta acción no se puede deshacer.</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AVISO DE ÉXITO -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toastOk" class="toast align-items-center text-bg-success border-0" role="status" aria-live="polite" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="toastTxt"></div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
