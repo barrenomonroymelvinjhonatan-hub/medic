@@ -1,4 +1,6 @@
-const API_URL = "http://127.0.0.1:8000/api";
+// Local (Live Server) -> Django en 127.0.0.1:8000. En producción, mismo dominio: /api
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(location.hostname) && location.port === "5500";
+const API_URL = IS_LOCAL ? "http://127.0.0.1:8000/api" : "/api";
 
 function saveSession(data) {
   localStorage.setItem("access", data.access);

@@ -2,7 +2,10 @@
 'use strict';
 
 // ================== CONFIGURACIÓN ==================
-const API_BASE = 'http://127.0.0.1:8000/api';
+// Local (Live Server) -> Django en 127.0.0.1:8000. En producción, mismo dominio: /api
+const API_BASE = (['127.0.0.1', 'localhost'].includes(location.hostname) && location.port === '5500')
+  ? 'http://127.0.0.1:8000/api'
+  : '/api';
 const LOGIN_PAGE = 'login.html';
 const ACCESS_KEYS = ['access', 'token', 'access_token'];
 const REFRESH_KEYS = ['refresh', 'refresh_token'];

@@ -15,6 +15,8 @@ staticfiles/
 
 # Variables de entorno
 .env
+.env.local
+.vercel
 
 # IDE
 .vscode/

@@ -10,23 +10,36 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
+import shutil
 from pathlib import Path
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# True cuando corre en Vercel (Vercel define la variable VERCEL)
+ON_VERCEL = bool(os.environ.get('VERCEL'))
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-8ew4)y6jt=ptne5kcw_3$i))wd5#bgsw+)ufpebu#uy*^i+h_i'
+# En Vercel se define SECRET_KEY como variable de entorno.
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-8ew4)y6jt=ptne5kcw_3$i))wd5#bgsw+)ufpebu#uy*^i+h_i',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Local: True por defecto. En Vercel se define DEBUG=False.
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.vercel.app']
+
+# Necesario para que el login del admin (/admin/) funcione por HTTPS en Vercel
+CSRF_TRUSTED_ORIGINS = ['https://*.vercel.app']
 
 
 # Application definition
@@ -83,10 +96,22 @@ WSGI_APPLICATION = 'medical.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
+DB_PATH = BASE_DIR / 'db.sqlite3'
+
+if ON_VERCEL:
+    # En Vercel el sistema de archivos del proyecto es de solo lectura.
+    # Se copia la base a /tmp (escribible) para que el login y el admin
+    # puedan escribir. OJO: /tmp es temporal; los cambios se pierden
+    # cuando Vercel recicla la instancia.
+    _tmp_db = Path('/tmp/db.sqlite3')
+    if not _tmp_db.exists():
+        shutil.copy(DB_PATH, _tmp_db)
+    DB_PATH = _tmp_db
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DB_PATH,
     }
 }
 
@@ -126,6 +151,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Vercel ejecuta collectstatic solo si STATIC_ROOT está definido y sirve los
+# archivos desde su CDN en /static/. Se incluye la carpeta frontend/ para que
+# el sitio (index, login, dashboard) quede en /static/*.html
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'frontend']
 
 
 # Email
